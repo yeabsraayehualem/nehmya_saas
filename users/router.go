@@ -14,6 +14,7 @@ func Routes(r *gin.Engine, db *gorm.DB,store *sessions.CookieStore){
 	handler := NewUserHandler(*service,store)
 
 
+	
 
 	users := r.Group("/user")
 
