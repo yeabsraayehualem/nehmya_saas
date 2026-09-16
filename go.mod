@@ -1,4 +1,4 @@
-module nehmya
+module github.com/yeabsraayehualem/nehmya_saas
 
 go 1.26.7
 
