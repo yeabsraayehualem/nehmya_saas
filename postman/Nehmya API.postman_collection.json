@@ -1,0 +1,206 @@
+{
+  "info": {
+    "name": "Nehmya API",
+    "description": "Local API requests for authentication, tenant registration, and subscription administration. Session cookies are retained by Postman for requests to the same host.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "tenantId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/create",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "create"
+              ]
+            },
+            "description": "Creates a manager account. Email and phone must be unique.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Example Manager\",\n  \"email\": \"manager@example.com\",\n  \"phone\": \"+251900000001\",\n  \"password\": \"ChangeMe123!\",\n  \"confirm_password\": \"ChangeMe123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "login"
+              ]
+            },
+            "description": "Logs in and saves the session cookie. Supply either email or phone.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"phone\": \"\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get current user",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "me"
+              ]
+            },
+            "description": "Requires the session cookie from Login."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Tenants",
+      "item": [
+        {
+          "name": "Register tenant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tenant/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tenant",
+                "register"
+              ]
+            },
+            "description": "Requires login. Creates a tenant owned by the current user, provisions a separate empty PostgreSQL database, and sets a default subscription period (30 days unless DEFAULT_SUBSCRIPTION_DAYS is configured). Each call creates a new tenant and database.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Example Church\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List my tenants",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tenant/mine",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tenant",
+                "mine"
+              ]
+            },
+            "description": "Requires login. Returns the current user\u2019s tenant records and subscription dates."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Subscription Admin",
+      "description": "These requests require a logged-in user whose role is sys_admin.",
+      "item": [
+        {
+          "name": "Set subscription dates",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tenant/{{tenantId}}/subscription",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tenant",
+                "{{tenantId}}",
+                "subscription"
+              ]
+            },
+            "description": "Requires sys_admin. Dates must be RFC3339 timestamps and ends_at must be after starts_at.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"starts_at\": \"{{subscriptionStartsAt}}\",\n  \"ends_at\": \"{{subscriptionEndsAt}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 package main
 
-import "nehmya/cmd/server"
+import "github.com/yeabsraayehualem/nehmya_saas/cmd/server"
 
 
 func main(){

@@ -3,9 +3,12 @@ package server
 import (
 	"fmt"
 	"log"
-	"nehmya/cmd/utils"
-	"nehmya/users"
 	"os"
+	"strconv"
+
+	"github.com/yeabsraayehualem/nehmya_saas/cmd/utils"
+	"github.com/yeabsraayehualem/nehmya_saas/tenants"
+	"github.com/yeabsraayehualem/nehmya_saas/users"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -13,10 +16,12 @@ import (
 	"gorm.io/gorm"
 )
 
-
 var migrationModels = []interface{}{
 	&users.User{},
+	&tenants.Tenant{},
+	&tenants.Subscription{},
 }
+
 type Server struct {
 	PORT string
 	DB   *gorm.DB
@@ -40,8 +45,9 @@ func NewServer() *Server {
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
-	
+
 	autoMigrate(db)
+	utils.InitSessions()
 
 	port := ":" + os.Getenv("PORT")
 
@@ -62,15 +68,20 @@ func autoMigrate(db *gorm.DB) {
 func (s *Server) Run() {
 	r := gin.Default()
 
-	users.Routes(r,s.DB,utils.CookieStore)
+	users.Routes(r, s.DB, utils.CookieStore)
+	provisioner := tenants.NewPostgresProvisioner(
+		os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"), os.Getenv("DB_ADMIN_DATABASE"),
+	)
+	defaultSubscriptionDays, err := strconv.Atoi(os.Getenv("DEFAULT_SUBSCRIPTION_DAYS"))
+	if err != nil || defaultSubscriptionDays <= 0 {
+		defaultSubscriptionDays = 30
+	}
+	tenants.Routes(r, s.DB, utils.CookieStore, provisioner, defaultSubscriptionDays)
 
-	
-
-	
 	log.Println("Server is running on port " + s.PORT)
 
 	if err := r.Run(s.PORT); err != nil {
 		log.Fatal(err)
 	}
 }
-

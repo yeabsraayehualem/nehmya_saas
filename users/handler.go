@@ -132,8 +132,13 @@ func (h UserHandler) GetMe(c *gin.Context) {
 
 // RequireAuth is middleware that rejects requests without a valid session.
 func (h UserHandler) RequireAuth() gin.HandlerFunc {
+	return SessionAuth(h.store)
+}
+
+// SessionAuth validates the signed-in user session for protected routes.
+func SessionAuth(store *sessions.CookieStore) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		session, err := h.store.Get(c.Request, "session")
+		session, err := store.Get(c.Request, "session")
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "failed to read session"})
 			return
